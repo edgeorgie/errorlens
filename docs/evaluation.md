@@ -16,7 +16,7 @@ A self-assessment against a reviewer's rubric. It states gaps plainly so a revie
 | Accessibility | Partial | The screenshot has alt text and the outline is described; reports are real text. Not audited with automated tooling. |
 | Performance | Partial | Images are downscaled before upload. Not measured with Lighthouse. |
 | Security | Partial | The key lives in sessionStorage by default and in localStorage only if the user opts in. Screenshots may contain secrets and are sent to the provider by design. Baseline security headers are set on a Node host. The Pages export carries a CSP meta tag (headers and frame-ancestors are not possible on Pages). |
-| Deployment | Pass | Live on GitHub Pages at https://edgeorgie.github.io/errorlens/. The deployed build was loaded in a browser and its main flow was exercised. |
+| Deployment | Pass | Live on Vercel at https://errorlens-one.vercel.app, with security headers served by the host. The main flow was exercised on the deployed site. |
 | Licensing | Pass | MIT. |
 
 ## Verify it yourself
