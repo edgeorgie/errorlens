@@ -10,7 +10,7 @@ Paste a screenshot of an error and get a plain explanation, likely causes and th
 
 ## Try it
 
-**Live demo:** https://edgeorgie.github.io/errorlens/
+**Live demo:** https://errorlens-one.vercel.app
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fedgeorgie%2Ferrorlens)
 
