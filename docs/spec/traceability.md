@@ -10,6 +10,8 @@ Every requirement maps to implementation files and to tests or manual evidence. 
 | FR-4 | `lib/report.ts`, `app/page.tsx` | `tests/lens.test.ts` | PR 2: region tests; in Chrome the outline matched the error line in the sample. | Verified |
 | FR-5 | `lib/history.ts`, `app/page.tsx` | `tests/lens.test.ts` | PR 2: history tests; reopening verified in Chrome. | Verified |
 | FR-6 | `lib/demo.ts` | manual | manual: PR 1, full flow in Chrome. | Verified |
-| FR-7 | `app/page.tsx` | manual | manual: a reload lost the stored settings because the save ran before the load; fixed by saving only after loading, then verified in Chrome that mode and key persist and that real calls to both providers with an invalid key return a handled 401. | Verified |
+| FR-7 | `app/page.tsx`, `lib/keystore.ts` | `tests/keystore.test.ts` | manual: a reload lost the stored settings because the save ran before the load; fixed by saving only after loading, then verified in Chrome that mode persists, that the key stays in sessionStorage unless "Remember" is ticked (SEC-002) and that real calls to both providers with an invalid key return a handled 401. | Verified |
+| FR-8 | `app/page.tsx` | manual | manual: in Chrome, discarding the screenshot during a demo analysis leaves the landing page with no tiles and no history entry (QA BUG-001). | Verified |
+| FR-9 | `scripts/csp.mjs`, `scripts/deploy-pages.mjs` | `tests/csp.test.ts` | Hash and policy tests; published site checked in Chrome after deploy (SEC-001). | Verified |
 
 "Verified" means the behavior was exercised. "Implemented, not verified end to end" means the code exists and its parts are tested, but a real external service or credential was not available.

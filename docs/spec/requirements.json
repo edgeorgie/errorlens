@@ -95,12 +95,45 @@
     "title": "Settings persistence",
     "status": "Verified",
     "acceptance": [
-      "Given a saved provider and key, when the page is reloaded, then the same provider and key are restored and are not overwritten by defaults."
+      "Given a saved provider, when the page is reloaded, then the same provider is restored and is not overwritten by defaults.",
+      "Given a provider key, then it is kept in sessionStorage for the tab by default, kept on the device (localStorage) only when the user ticks \"Remember on this device\", and removable with \"Clear key\"."
+    ],
+    "implementation": [
+      "app/page.tsx",
+      "lib/keystore.ts"
+    ],
+    "tests": [
+      "tests/keystore.test.ts"
+    ],
+    "evidence": "manual: fixed a reload bug and verified persistence and handled 401 responses from both providers in Chrome."
+  },
+  {
+    "id": "FR-8",
+    "title": "Stale analysis is ignored",
+    "status": "Verified",
+    "acceptance": [
+      "Given an analysis in flight, when the user discards the screenshot or loads another one, then the late result is ignored: it is not shown and not added to the history."
     ],
     "implementation": [
       "app/page.tsx"
     ],
     "tests": [],
-    "evidence": "manual: fixed a reload bug and verified persistence and handled 401 responses from both providers in Chrome."
+    "evidence": "manual: in Chrome, discarding the screenshot during a demo analysis leaves the landing page with no tiles and no history entry (QA BUG-001)."
+  },
+  {
+    "id": "FR-9",
+    "title": "Content Security Policy on the static export",
+    "status": "Verified",
+    "acceptance": [
+      "Given the Pages export, then every page carries a Content-Security-Policy meta tag that allows scripts only from the site and from the hashes of its inline scripts, and connections only to the site, api.anthropic.com and api.openai.com."
+    ],
+    "implementation": [
+      "scripts/csp.mjs",
+      "scripts/deploy-pages.mjs"
+    ],
+    "tests": [
+      "tests/csp.test.ts"
+    ],
+    "evidence": "Hash and policy tests; published site checked in Chrome after deploy (SEC-001)."
   }
 ]
