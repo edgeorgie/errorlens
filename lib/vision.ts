@@ -65,7 +65,7 @@ export async function analyze(provider: Provider, key: string, image: ImagePaylo
       },
       body: JSON.stringify(buildAnthropicBody(image, context)),
     });
-    if (!res.ok) throw new Error(`Anthropic error ${res.status}. Check your key.`);
+    if (!res.ok) throw providerError("Anthropic", res.status);
     const j = (await res.json()) as { content: { text?: string }[] };
     reply = j.content.map((c) => c.text ?? "").join("");
   } else {
@@ -74,11 +74,23 @@ export async function analyze(provider: Provider, key: string, image: ImagePaylo
       headers: { "content-type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify(buildOpenAIBody(image, context)),
     });
-    if (!res.ok) throw new Error(`OpenAI error ${res.status}. Check your key.`);
+    if (!res.ok) throw providerError("OpenAI", res.status);
     const j = (await res.json()) as { choices: { message: { content: string } }[] };
     reply = j.choices[0]?.message.content ?? "";
   }
   const report = parseReport(reply);
   if (!report) throw new Error("The model did not return a readable report. Try again or crop closer to the error.");
   return report;
+}
+
+export function providerError(label: string, status: number): Error {
+  const hint =
+    status === 401 || status === 403
+      ? "Check your API key."
+      : status === 429
+        ? "Rate limit reached. Wait a moment and retry."
+        : status >= 500
+          ? "The provider is having problems. Try again later."
+          : "The provider rejected the request.";
+  return new Error(`${label} error ${status}. ${hint}`);
 }
