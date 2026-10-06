@@ -1,0 +1,93 @@
+[
+  {
+    "id": "FR-1",
+    "title": "Image intake and downscaling",
+    "status": "Verified",
+    "acceptance": [
+      "Given a pasted, dropped or uploaded image, then it is scaled so the longest side is at most 1568 px and encoded as JPEG."
+    ],
+    "implementation": [
+      "lib/image.ts",
+      "app/page.tsx"
+    ],
+    "tests": [
+      "tests/lens.test.ts"
+    ],
+    "evidence": "PR 1: sizing and data URL tests."
+  },
+  {
+    "id": "FR-2",
+    "title": "Vision requests",
+    "status": "Implemented, not verified end to end",
+    "acceptance": [
+      "Given Anthropic or OpenAI, then the image is encoded in that provider's format and sent directly from the browser."
+    ],
+    "implementation": [
+      "lib/vision.ts"
+    ],
+    "tests": [
+      "tests/lens.test.ts"
+    ],
+    "evidence": "PR 1: request body tests; in Chrome a mocked Anthropic call received a JPEG image block. Not run against a real provider."
+  },
+  {
+    "id": "FR-3",
+    "title": "Structured report",
+    "status": "Verified",
+    "acceptance": [
+      "Given a model reply, then the error, stack, explanation, ranked causes, fixes and searches are parsed and clamped; unusable replies are rejected."
+    ],
+    "implementation": [
+      "lib/report.ts"
+    ],
+    "tests": [
+      "tests/lens.test.ts"
+    ],
+    "evidence": "PR 1: parser tests."
+  },
+  {
+    "id": "FR-4",
+    "title": "Error region highlight",
+    "status": "Verified",
+    "acceptance": [
+      "Given a region as fractions of the image, then it is validated and clamped and drawn over the screenshot."
+    ],
+    "implementation": [
+      "lib/report.ts",
+      "app/page.tsx"
+    ],
+    "tests": [
+      "tests/lens.test.ts"
+    ],
+    "evidence": "PR 2: region tests; in Chrome the outline matched the error line in the sample."
+  },
+  {
+    "id": "FR-5",
+    "title": "Local history",
+    "status": "Verified",
+    "acceptance": [
+      "Given results, then the last six are kept on this device with thumbnails, deduplicated by error, and can be reopened, removed or cleared."
+    ],
+    "implementation": [
+      "lib/history.ts",
+      "app/page.tsx"
+    ],
+    "tests": [
+      "tests/lens.test.ts"
+    ],
+    "evidence": "PR 2: history tests; reopening verified in Chrome."
+  },
+  {
+    "id": "FR-6",
+    "title": "Demo mode",
+    "status": "Verified",
+    "acceptance": [
+      "Given demo mode, then a generated sample screenshot and a prepared report work with no key and no network."
+    ],
+    "implementation": [
+      "lib/demo.ts"
+    ],
+    "tests": [],
+    "evidence": "manual: PR 1, full flow in Chrome."
+  }
+]
