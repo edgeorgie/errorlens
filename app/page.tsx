@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Tiles from "@/components/Tiles";
 import { DEMO_REPORT, drawSampleError } from "@/lib/demo";
+import { addEntry, loadHistory, makeThumb, removeEntry, saveHistory, timeAgo } from "@/lib/history";
+import type { Entry } from "@/lib/history";
 import { prepareImage } from "@/lib/image";
 import type { Prepared } from "@/lib/image";
 import type { ErrorReport } from "@/lib/report";
@@ -21,6 +23,29 @@ export default function Home() {
   const [mode, setMode] = useState<Mode>("demo");
   const [keys, setKeys] = useState<Partial<Record<Provider, string>>>({});
   const [dragging, setDragging] = useState(false);
+  const [history, setHistory] = useState<Entry[]>([]);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    Promise.resolve().then(() => setHistory(loadHistory()));
+  }, []);
+
+  const remember = async (r: ErrorReport, dataUrl: string) => {
+    const thumb = await makeThumb(dataUrl);
+    setHistory((h) => {
+      const next = addEntry(h, { id: crypto.randomUUID(), at: Date.now(), thumb, report: r });
+      saveHistory(next);
+      return next;
+    });
+  };
+
+  const openSaved = (e: Entry) => {
+    setImage({ base64: "", mediaType: "image/jpeg", width: 0, height: 0, dataUrl: e.thumb });
+    setReport(e.report);
+    setSaved(true);
+    setError("");
+    setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+  };
   const fileInput = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +71,7 @@ export default function Home() {
   const load = useCallback(async (blob: Blob) => {
     setError("");
     setReport(null);
+    setSaved(false);
     try {
       setImage(await prepareImage(blob));
     } catch {
@@ -72,7 +98,7 @@ export default function Home() {
   };
 
   const run = async () => {
-    if (!image) return;
+    if (!image || !image.base64) return;
     setError("");
     setReport(null);
     setBusy(true);
@@ -87,6 +113,7 @@ export default function Home() {
         result = await analyze(mode, key, { base64: image.base64, mediaType: image.mediaType }, context);
       }
       setReport(result);
+      void remember(result, image.dataUrl);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -161,20 +188,73 @@ export default function Home() {
               <p className="mt-1 text-sm text-ink-soft">or drop an image anywhere on this page</p>
             </div>
           </button>
+
+          {history.length > 0 && (
+            <div className="lg:col-span-2">
+              <div className="mb-3 flex items-baseline justify-between">
+                <p className="font-mono text-[11px] font-medium uppercase tracking-widest text-ink-soft">Recent on this device</p>
+                <button
+                  onClick={() => {
+                    setHistory([]);
+                    saveHistory([]);
+                  }}
+                  className="text-xs font-semibold text-ink-soft underline-offset-4 hover:text-pink hover:underline"
+                >
+                  Clear
+                </button>
+              </div>
+              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {history.map((e, i) => (
+                  <li key={e.id} className="tile-in group relative" style={{ animationDelay: `${i * 70}ms` }}>
+                    <button onClick={() => openSaved(e)} className="flex w-full items-center gap-3 rounded-2xl border border-line bg-white p-2.5 text-left transition hover:-translate-y-0.5 hover:border-pink hover:shadow-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {e.thumb ? <img src={e.thumb} alt="" className="h-14 w-20 shrink-0 rounded-lg object-cover object-top" /> : <span className="h-14 w-20 shrink-0 rounded-lg bg-pink-soft" />}
+                      <span className="min-w-0">
+                        <span className="block truncate font-mono text-[12px] font-medium">{e.report.error}</span>
+                        <span className="mt-0.5 block text-[11px] text-ink-soft">{e.report.stack || "error"} &middot; {timeAgo(e.at)}</span>
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const next = removeEntry(history, e.id);
+                        setHistory(next);
+                        saveHistory(next);
+                      }}
+                      className="absolute right-2 top-2 hidden h-6 w-6 place-items-center rounded-full bg-ink text-xs text-white group-hover:grid"
+                      aria-label="Remove from history"
+                    >
+                      &times;
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
       ) : (
         <section className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
           <div className="tile-in">
-            <div className="relative overflow-hidden rounded-[2rem] border border-line bg-white p-3 shadow-xl shadow-ink/5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image.dataUrl} alt="Your screenshot" className="w-full rounded-[1.4rem]" />
-              {busy && (
-                <div className="pointer-events-none absolute inset-3 overflow-hidden rounded-[1.4rem]">
-                  <div className="scan" />
-                </div>
-              )}
+            <div className="overflow-hidden rounded-[2rem] border border-line bg-white p-3 shadow-xl shadow-ink/5">
+              <div className="relative overflow-hidden rounded-[1.4rem]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={image.dataUrl} alt="Your screenshot" className="w-full" />
+                {report?.region && (
+                  <div
+                    className="region-in pointer-events-none absolute rounded-md border-[3px] border-pink bg-pink/10"
+                    style={{ left: `${report.region.x * 100}%`, top: `${report.region.y * 100}%`, width: `${report.region.w * 100}%`, height: `${report.region.h * 100}%` }}
+                    aria-label="Where the error is"
+                  >
+                    <span className="absolute -top-3 left-2 rounded-full bg-pink px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">the error</span>
+                  </div>
+                )}
+                {busy && (
+                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div className="scan" />
+                  </div>
+                )}
+              </div>
             </div>
-            <button onClick={() => { setImage(null); setReport(null); }} className="mt-3 text-sm font-semibold text-ink-soft underline-offset-4 hover:text-pink hover:underline">
+            <button onClick={() => { setImage(null); setReport(null); setSaved(false); }} className="mt-3 text-sm font-semibold text-ink-soft underline-offset-4 hover:text-pink hover:underline">
               Use a different screenshot
             </button>
           </div>
@@ -201,10 +281,10 @@ export default function Home() {
             )}
             <button
               onClick={run}
-              disabled={busy}
+              disabled={busy || saved}
               className="rounded-full bg-pink px-8 py-4 text-base font-extrabold text-white shadow-xl shadow-pink/30 transition hover:-translate-y-0.5 hover:brightness-105 active:scale-95 disabled:opacity-70"
             >
-              {busy ? "Analyzing..." : report ? "Analyze again" : mode === "demo" ? "Analyze (demo)" : "Analyze"}
+              {busy ? "Analyzing..." : saved ? "Saved result" : report ? "Analyze again" : mode === "demo" ? "Analyze (demo)" : "Analyze"}
             </button>
             {mode === "demo" && <p className="text-xs text-ink-soft">Demo mode shows a prepared example without calling any model. Switch to Anthropic or OpenAI with your own key for real screenshots.</p>}
             {error && <p className="rounded-2xl bg-pink-soft px-4 py-3 text-sm font-semibold text-pink">{error}</p>}

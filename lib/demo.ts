@@ -16,6 +16,7 @@ export const DEMO_REPORT: ErrorReport = {
     { step: "Log the response to confirm the shape before setting state.", code: "console.log(await res.json());" },
   ],
   searches: ["react cannot read properties of undefined reading map", "useState initial value array fetch undefined map"],
+  region: { x: 0.02, y: 0.37, w: 0.93, h: 0.075 },
 };
 
 const LINES: { text: string; color: string }[] = [

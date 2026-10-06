@@ -7,7 +7,9 @@ Paste a screenshot of an error and get a plain-language explanation, ranked like
 - Paste with `Ctrl+V`, drop an image anywhere on the page, or upload a file. Large screenshots are scaled down in the browser before they are sent.
 - Works on terminal output, browser consoles, IDE problems and build logs.
 - Returns a structured report: the exact error, the stack involved, a plain explanation, likely causes with likelihoods, fix steps with copyable code, and ready-made search queries.
+- The model also returns where the error sits in the image, and the screenshot gets a pulsing outline around it.
 - Optional context ("what were you doing?") improves the answer.
+- Your last six results are kept on this device (small thumbnails in localStorage, never uploaded) so you can reopen them.
 
 ## Models
 
