@@ -63,7 +63,20 @@ Status: Verified.
 
 Status: Verified.
 
-- Given a saved provider and key, when the page is reloaded, then the same provider and key are restored and are not overwritten by defaults.
+- Given a saved provider, when the page is reloaded, then the same provider is restored and is not overwritten by defaults.
+- Given a provider key, then it is kept in sessionStorage for the tab by default, kept on the device (localStorage) only when the user ticks "Remember on this device", and removable with "Clear key".
+
+### FR-8 Stale analysis is ignored
+
+Status: Verified.
+
+- Given an analysis in flight, when the user discards the screenshot or loads another one, then the late result is ignored: it is not shown and not added to the history.
+
+### FR-9 Content Security Policy on the static export
+
+Status: Verified.
+
+- Given the Pages export, then every page carries a Content-Security-Policy meta tag that allows scripts only from the site and from the hashes of its inline scripts, and connections only to the site, api.anthropic.com and api.openai.com.
 
 
 ## Open risks

@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Tiles from "@/components/Tiles";
 import { DEMO_REPORT, drawSampleError } from "@/lib/demo";
+import KeyNotes from "@/components/KeyNotes";
 import { addEntry, loadHistory, makeThumb, removeEntry, saveHistory, timeAgo } from "@/lib/history";
 import type { Entry } from "@/lib/history";
 import { prepareImage } from "@/lib/image";
+import { clearKeys, readKeys, writeKeys } from "@/lib/keystore";
 import type { Prepared } from "@/lib/image";
 import type { ErrorReport } from "@/lib/report";
 import { PROVIDERS, analyze } from "@/lib/vision";
@@ -13,6 +15,8 @@ import type { Provider } from "@/lib/vision";
 
 type Mode = "demo" | Provider;
 const STORE = "errorlens.settings";
+const KEYS = "errorlens.keys";
+const HOSTS: Record<Provider, string> = { anthropic: "api.anthropic.com", openai: "api.openai.com" };
 
 export default function Home() {
   const [image, setImage] = useState<Prepared | null>(null);
@@ -25,12 +29,14 @@ export default function Home() {
   const [dragging, setDragging] = useState(false);
   const [history, setHistory] = useState<Entry[]>([]);
   const [saved, setSaved] = useState(false);
+  const [remember, setRemember] = useState(false);
+  const runId = useRef(0);
 
   useEffect(() => {
     Promise.resolve().then(() => setHistory(loadHistory()));
   }, []);
 
-  const remember = async (r: ErrorReport, dataUrl: string) => {
+  const saveEntry = async (r: ErrorReport, dataUrl: string) => {
     const thumb = await makeThumb(dataUrl);
     setHistory((h) => {
       const next = addEntry(h, { id: crypto.randomUUID(), at: Date.now(), thumb, report: r });
@@ -56,10 +62,16 @@ export default function Home() {
       try {
         const raw = localStorage.getItem(STORE);
         if (raw) {
-          const s = JSON.parse(raw) as { mode: Mode; keys: Partial<Record<Provider, string>> };
+          const s = JSON.parse(raw) as { mode: Mode; keys?: Partial<Record<Provider, string>> };
           setMode(s.mode);
-          setKeys(s.keys ?? {});
+          if (s.keys) {
+            sessionStorage.setItem(KEYS, JSON.stringify(s.keys));
+            localStorage.setItem(STORE, JSON.stringify({ mode: s.mode }));
+          }
         }
+        const stored = readKeys<Partial<Record<Provider, string>>>(KEYS, sessionStorage, localStorage);
+        if (stored.value) setKeys(stored.value);
+        setRemember(stored.remember);
       } catch {}
       setSettingsLoaded(true);
     });
@@ -69,11 +81,21 @@ export default function Home() {
   useEffect(() => {
     if (!settingsLoaded) return;
     try {
-      localStorage.setItem(STORE, JSON.stringify({ mode, keys }));
+      localStorage.setItem(STORE, JSON.stringify({ mode }));
     } catch {}
-  }, [mode, keys, settingsLoaded]);
+  }, [mode, settingsLoaded]);
+
+  useEffect(() => {
+    if (!settingsLoaded) return;
+    try {
+      if (Object.values(keys).some(Boolean)) writeKeys(KEYS, keys, remember, sessionStorage, localStorage);
+      else clearKeys(KEYS, sessionStorage, localStorage);
+    } catch {}
+  }, [keys, remember, settingsLoaded]);
 
   const load = useCallback(async (blob: Blob) => {
+    runId.current++;
+    setBusy(false);
     setError("");
     setReport(null);
     setSaved(false);
@@ -104,6 +126,7 @@ export default function Home() {
 
   const run = async () => {
     if (!image || !image.base64) return;
+    const id = ++runId.current;
     setError("");
     setReport(null);
     setBusy(true);
@@ -117,13 +140,14 @@ export default function Home() {
         if (!key) throw new Error(`Add your ${PROVIDERS[mode].label} key below, or switch to the demo.`);
         result = await analyze(mode, key, { base64: image.base64, mediaType: image.mediaType }, context);
       }
+      if (id !== runId.current) return;
       setReport(result);
-      void remember(result, image.dataUrl);
+      void saveEntry(result, image.dataUrl);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      if (id === runId.current) setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
-      setBusy(false);
+      if (id === runId.current) setBusy(false);
     }
   };
 
@@ -142,7 +166,7 @@ export default function Home() {
         if (f) load(f);
       }}
     >
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <span className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
           <span className="grid h-9 w-9 place-items-center rounded-full bg-ink">
             <span className="iris h-4 w-4 rounded-full bg-pink shadow-[0_0_14px_var(--pink)]" />
@@ -259,7 +283,7 @@ export default function Home() {
                 )}
               </div>
             </div>
-            <button onClick={() => { setImage(null); setReport(null); setSaved(false); }} className="mt-3 text-sm font-semibold text-ink-soft underline-offset-4 hover:text-pink hover:underline">
+            <button onClick={() => { runId.current++; setBusy(false); setImage(null); setReport(null); setSaved(false); }} className="mt-3 text-sm font-semibold text-ink-soft underline-offset-4 hover:text-pink hover:underline">
               Use a different screenshot
             </button>
           </div>
@@ -280,9 +304,12 @@ export default function Home() {
                 type="password"
                 value={keys[mode] ?? ""}
                 onChange={(e) => setKeys((k) => ({ ...k, [mode]: e.target.value }))}
-                placeholder={`${PROVIDERS[mode].label} API key (stays in this browser)`}
+                placeholder={`${PROVIDERS[mode].label} API key`}
                 className="rounded-2xl border border-line bg-white px-4 py-3 text-sm outline-none transition focus:border-pink focus:shadow-[0_0_0_4px_var(--pink-soft)]"
               />
+            )}
+            {mode !== "demo" && (
+              <KeyNotes host={HOSTS[mode]} remember={remember} hasKey={Boolean(keys[mode])} onRemember={setRemember} onClear={() => setKeys((k) => ({ ...k, [mode]: "" }))} />
             )}
             <button
               onClick={run}
