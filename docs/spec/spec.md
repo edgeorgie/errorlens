@@ -59,6 +59,13 @@ Status: Verified.
 
 - Given demo mode, then a generated sample screenshot and a prepared report work with no key and no network.
 
+### FR-7 Settings persistence
+
+Status: Verified.
+
+- Given a saved provider and key, when the page is reloaded, then the same provider and key are restored and are not overwritten by defaults.
+
+
 ## Open risks
 
 - Region coordinates from a model can be wrong; they are validated but may be imprecise.

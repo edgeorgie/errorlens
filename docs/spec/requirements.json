@@ -89,5 +89,18 @@
     ],
     "tests": [],
     "evidence": "manual: PR 1, full flow in Chrome."
+  },
+  {
+    "id": "FR-7",
+    "title": "Settings persistence",
+    "status": "Verified",
+    "acceptance": [
+      "Given a saved provider and key, when the page is reloaded, then the same provider and key are restored and are not overwritten by defaults."
+    ],
+    "implementation": [
+      "app/page.tsx"
+    ],
+    "tests": [],
+    "evidence": "manual: fixed a reload bug and verified persistence and handled 401 responses from both providers in Chrome."
   }
 ]

@@ -49,6 +49,8 @@ export default function Home() {
   const fileInput = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
   useEffect(() => {
     Promise.resolve().then(() => {
       try {
@@ -59,14 +61,17 @@ export default function Home() {
           setKeys(s.keys ?? {});
         }
       } catch {}
+      setSettingsLoaded(true);
     });
   }, []);
 
+  // Saving before the stored value is read would overwrite it with the defaults.
   useEffect(() => {
+    if (!settingsLoaded) return;
     try {
       localStorage.setItem(STORE, JSON.stringify({ mode, keys }));
     } catch {}
-  }, [mode, keys]);
+  }, [mode, keys, settingsLoaded]);
 
   const load = useCallback(async (blob: Blob) => {
     setError("");
