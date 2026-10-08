@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { DM_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
   description: "Paste a screenshot of an error. Get a plain explanation, the likely cause and the fix.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`}>
       <body className="min-h-full">{children}</body>
