@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #fbfaf8;
+  --ink: #0d0d12;
+  --ink-soft: #6a6a76;
+  --line: rgba(13, 13, 18, 0.1);
+  --pink: #ff2e88;
+  --pink-soft: #ffdcec;
+  --lemon: #fff2a8;
+  --mint: #c8f7dc;
+  --sky: #cfe8ff;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-pink: var(--pink);
+  --color-pink-soft: var(--pink-soft);
+  --color-lemon: var(--lemon);
+  --color-mint: var(--mint);
+  --color-sky: var(--sky);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.headline {
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.tile-in {
+  animation: tile-in 560ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* the scanner that sweeps over the screenshot while it is being read */
+.scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 46, 136, 0.35), transparent);
+  border-bottom: 2px solid var(--pink);
+  animation: scan 1.6s ease-in-out infinite;
+}
+
+@keyframes scan {
+  0% {
+    top: -56px;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+.iris {
+  animation: iris 4s ease-in-out infinite;
+}
+
+@keyframes iris {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.72);
+  }
+}
+
+.bar {
+  transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hint {
+  animation: hint 2.4s ease-in-out infinite;
+}
+
+@keyframes hint {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-in,
+  .scan,
+  .iris,
+  .hint {
+    animation: none;
+  }
+}
+
+.region-in {
+  animation: region-in 700ms cubic-bezier(0.34, 1.4, 0.64, 1) both, region-pulse 2.2s 700ms ease-in-out infinite;
+}
+
+@keyframes region-in {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes region-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 46, 136, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 46, 136, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .region-in {
+    animation: none;
+  }
+}
