@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { DM_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import Analytics from "@/components/Analytics";
 import "./globals.css";
 
 const sans = Plus_Jakarta_Sans({ variable: "--font-sans", subsets: ["latin"] });
@@ -14,7 +15,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

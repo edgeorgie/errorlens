@@ -21,3 +21,10 @@ test("the policy is the first thing in head and is not duplicated on a second pa
   assert.equal(once, twice);
   assert.ok(once.indexOf("Content-Security-Policy") < once.indexOf("charSet"));
 });
+
+test("a PostHog host widens connect-src and script-src only when it is given", () => {
+  const out: string = addCsp(page, ["https://api.openai.com", "https://us.i.posthog.com"], ["https://us-assets.i.posthog.com"]);
+  assert.ok(out.includes(`script-src 'self' ${hash} https://us-assets.i.posthog.com`));
+  assert.ok(out.includes("connect-src 'self' https://api.openai.com https://us.i.posthog.com"));
+  assert.ok(!addCsp(page).includes("posthog"));
+});
