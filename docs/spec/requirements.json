@@ -125,7 +125,8 @@
     "title": "Content Security Policy on the static export",
     "status": "Verified",
     "acceptance": [
-      "Given the Pages export, then every page carries a Content-Security-Policy meta tag that allows scripts only from the site and from the hashes of its inline scripts, and connections only to the site, api.anthropic.com and api.openai.com."
+      "Given the Pages export, then every page carries a Content-Security-Policy meta tag that allows scripts only from the site and from the hashes of its inline scripts, and connections only to the site, api.anthropic.com and api.openai.com.",
+      "Given the Pages export built with NEXT_PUBLIC_POSTHOG_HOST, then that host and the PostHog assets host are also allowed for connections, and the assets host for scripts; without the variable the policy is unchanged."
     ],
     "implementation": [
       "scripts/csp.mjs",
@@ -134,6 +135,29 @@
     "tests": [
       "tests/csp.test.ts"
     ],
-    "evidence": "Hash and policy tests; published site checked in Chrome after deploy (SEC-001)."
+    "evidence": "Hash and policy tests; published site checked in Chrome after deploy (SEC-001). T-4: the optional PostHog host is covered by a test and inspected in a local export; not yet published."
+  },
+  {
+    "id": "FR-10",
+    "title": "Product analytics without user content",
+    "status": "Implemented, not verified end to end",
+    "acceptance": [
+      "Given a build without NEXT_PUBLIC_POSTHOG_KEY, then the build output contains no analytics SDK, no analytics request is made and nothing is written to the console.",
+      "Given a build with the key, then a $pageview is sent on load and on every route change, and one error_explained is sent when an analysis request to a model or to the demo completes or fails, with exactly model, latency_ms, input_kind and ok; every event also carries app: \"errorlens\" and surface: \"web\". A missing provider key is not an attempt and sends nothing.",
+      "Given the key, then the SDK runs cookieless with no person profiles, no autocapture and no session recording, honours Do Not Track, and sends to the site's own /ingest path, which a Node host proxies, or to NEXT_PUBLIC_POSTHOG_HOST on the Pages export.",
+      "The screenshot, the context text, the report, error messages and the provider key are never sent."
+    ],
+    "implementation": [
+      "lib/analytics.ts",
+      "lib/posthog.ts",
+      "components/Analytics.tsx",
+      "instrumentation-client.ts",
+      "app/page.tsx",
+      "next.config.ts"
+    ],
+    "tests": [
+      "tests/analytics.test.ts"
+    ],
+    "evidence": "T-4: tests pin the no-op without a key, the error_explained property allowlist and the SDK privacy options. Builds without a key (Vercel target and Pages export): grep -rli posthog over the build output is empty. With a dummy key the SDK chunk is emitted and the /ingest proxy forwards. Not run in a browser or against a PostHog project."
   }
 ]

@@ -29,7 +29,14 @@ Open http://localhost:3000. Requires Node 22 or newer.
 
 ## Configuration
 
-No environment variables. API keys are entered in the app and stay in the browser.
+Nothing is required. API keys are entered in the app and stay in the browser. Usage analytics is off unless a build sets a key (see `.env.example`):
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_POSTHOG_KEY` | Public PostHog project token. Unset: the analytics SDK is not in the build at all. Set at build time; it is inlined. |
+| `NEXT_PUBLIC_POSTHOG_HOST` | Where the browser sends events. Defaults to this site's `/ingest` path, which a Node host such as Vercel proxies to PostHog. The GitHub Pages export has no server, so set it there, for example `https://us.i.posthog.com`; the export's Content-Security-Policy then also allows that host and `https://us-assets.i.posthog.com`, and only then. |
+
+The events are `$pageview` and `error_explained` (the model, duration in ms, whether it succeeded). Never the screenshot, the context text, the report or your key; no cookies. In the PostHog project, enable cookieless mode (otherwise events are dropped) and "Discard client IP data". Details: [ADR 0002](docs/adr/0002-cookieless-analytics.md).
 
 ## How it works
 
@@ -81,6 +88,7 @@ Motion, components and rationale: [docs/design-system.md](docs/design-system.md)
 | Screenshot | Sent to the chosen model provider from the browser | Not stored remotely |
 | Thumbnails and reports | Last six kept locally | localStorage |
 | Provider key | localStorage, sent only to the provider | This browser |
+| Usage events (off unless a build sets a key) | PostHog, through this site's `/ingest` path | Page view; model, duration and outcome of each analysis. No content, no cookies |
 
 ## Limits
 
@@ -92,8 +100,8 @@ Motion, components and rationale: [docs/design-system.md](docs/design-system.md)
 
 The app is fully client-side, so it can be hosted as static files.
 
-- **GitHub Pages:** `npm run deploy:pages` builds a static export and publishes it to the `gh-pages` branch. Enable Pages from that branch; on a free plan the repository must be public.
-- **Vercel or any Node host:** use the Deploy button above. No configuration is needed.
+- **GitHub Pages:** `npm run deploy:pages` builds a static export and publishes it to the `gh-pages` branch. Enable Pages from that branch; on a free plan the repository must be public. For analytics there, run it with both `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` set.
+- **Vercel or any Node host:** use the Deploy button above. No configuration is needed; set `NEXT_PUBLIC_POSTHOG_KEY` to turn analytics on.
 
 ## Documentation
 

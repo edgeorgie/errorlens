@@ -77,9 +77,22 @@ Status: Verified.
 Status: Verified.
 
 - Given the Pages export, then every page carries a Content-Security-Policy meta tag that allows scripts only from the site and from the hashes of its inline scripts, and connections only to the site, api.anthropic.com and api.openai.com.
+- Given the Pages export built with `NEXT_PUBLIC_POSTHOG_HOST`, then that host and the PostHog assets host are also allowed for connections, and the assets host for scripts; without the variable the policy is unchanged.
 
+
+### FR-10 Product analytics without user content
+
+Status: Implemented, not verified end to end.
+
+- Given a build without `NEXT_PUBLIC_POSTHOG_KEY`, then the build output contains no analytics SDK, no analytics request is made and nothing is written to the console.
+- Given a build with the key, then a `$pageview` is sent on load and on every route change, and one `error_explained` is sent when an analysis request to a model or to the demo completes or fails, with exactly `model`, `latency_ms`, `input_kind` and `ok`; every event also carries `app: "errorlens"` and `surface: "web"`. A missing provider key is not an attempt and sends nothing.
+- Given the key, then the SDK runs cookieless with no person profiles, no autocapture and no session recording, honours Do Not Track, and sends to the site's own `/ingest` path, which a Node host proxies, or to `NEXT_PUBLIC_POSTHOG_HOST` on the Pages export.
+- The screenshot, the context text, the report, error messages and the provider key are never sent.
+
+Non-goals: identifying visitors or linking their visits across days, a consent banner, session replay, autocapture, any event or property outside this list.
 
 ## Open risks
 
 - Region coordinates from a model can be wrong; they are validated but may be imprecise.
 - Provider CORS behavior may change.
+- Analytics has not been exercised against a PostHog project yet; the no-op path and the property allowlist are tested, the delivery is not.
