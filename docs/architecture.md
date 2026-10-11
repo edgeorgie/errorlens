@@ -42,6 +42,7 @@ sequenceDiagram
 | `lib/posthog.ts` | The only import of the PostHog SDK and its privacy options; loaded on demand |
 | `components/Analytics.tsx` | Manual `$pageview` on load and route changes; renders nothing without a key |
 | `instrumentation-client.ts` | Loads the SDK on idle when a key exists |
+| `next.config.ts` | `/ingest` rewrites to PostHog on Node hosts, registered only when `NEXT_PUBLIC_POSTHOG_KEY` is set; otherwise the route does not exist. The Pages export has none |
 
 ## Principles
 
