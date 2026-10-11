@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Tiles from "@/components/Tiles";
 import { DEMO_REPORT, drawSampleError } from "@/lib/demo";
 import KeyNotes from "@/components/KeyNotes";
+import { timeExplanation, track } from "@/lib/analytics";
 import { addEntry, loadHistory, makeThumb, removeEntry, saveHistory, timeAgo } from "@/lib/history";
 import type { Entry } from "@/lib/history";
 import { prepareImage } from "@/lib/image";
@@ -127,24 +128,31 @@ export default function Home() {
   const run = async () => {
     if (!image || !image.base64) return;
     const id = ++runId.current;
+    const model = mode === "demo" ? "demo" : PROVIDERS[mode].model;
+    // Started once a request leaves for the model (or the demo starts): a missing key is not an attempt.
+    let explained: ReturnType<typeof timeExplanation> | undefined;
     setError("");
     setReport(null);
     setBusy(true);
     try {
       let result: ErrorReport;
       if (mode === "demo") {
+        explained = timeExplanation(model);
         await new Promise((r) => setTimeout(r, 2200));
         result = DEMO_REPORT;
       } else {
         const key = keys[mode];
         if (!key) throw new Error(`Add your ${PROVIDERS[mode].label} key below, or switch to the demo.`);
+        explained = timeExplanation(model);
         result = await analyze(mode, key, { base64: image.base64, mediaType: image.mediaType }, context);
       }
+      track("error_explained", explained(true));
       if (id !== runId.current) return;
       setReport(result);
       void saveEntry(result, image.dataUrl);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
     } catch (e) {
+      if (explained) track("error_explained", explained(false));
       if (id === runId.current) setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       if (id === runId.current) setBusy(false);

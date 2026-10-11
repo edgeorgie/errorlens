@@ -10,7 +10,13 @@ const run = (cmd, opts = {}) => execSync(cmd, { stdio: "inherit", ...opts });
 
 run("npm run build", { env: { ...process.env, DEPLOY_TARGET: "pages", PAGES_BASE_PATH: `/${name}` } });
 
-applyCsp("out", ["https://api.anthropic.com", "https://api.openai.com"]);
+// The export has no server to proxy analytics, so when a PostHog host is configured the policy must
+// let the page reach it, and the assets host that serves the SDK's remote config and lazy-loaded
+// extensions. Without one the policy stays pinned to the site and the two providers.
+const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+const posthogAssets = "https://us-assets.i.posthog.com";
+const connect = ["https://api.anthropic.com", "https://api.openai.com", ...(posthogHost ? [posthogHost, posthogAssets] : [])];
+applyCsp("out", connect, posthogHost ? [posthogAssets] : []);
 
 const remote = execSync("git remote get-url origin").toString().trim();
 const dir = mkdtempSync(join(tmpdir(), "pages-"));
