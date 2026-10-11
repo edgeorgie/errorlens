@@ -33,8 +33,8 @@ Nothing is required. API keys are entered in the app and stay in the browser. Us
 
 | Variable | Purpose |
 |---|---|
-| `NEXT_PUBLIC_POSTHOG_KEY` | Public PostHog project token. Unset: the analytics SDK is not in the build at all. Set at build time; it is inlined. |
-| `NEXT_PUBLIC_POSTHOG_HOST` | Where the browser sends events. Defaults to this site's `/ingest` path, which a Node host such as Vercel proxies to PostHog. The GitHub Pages export has no server, so set it there, for example `https://us.i.posthog.com`; the export's Content-Security-Policy then also allows that host and `https://us-assets.i.posthog.com`, and only then. |
+| `NEXT_PUBLIC_POSTHOG_KEY` | Public PostHog project token. Unset: the analytics SDK is not in the build at all and the `/ingest` proxy route is not registered. Set at build time; it is inlined. |
+| `NEXT_PUBLIC_POSTHOG_HOST` | Where the browser sends events. Defaults to this site's `/ingest` path, which a Node host such as Vercel proxies to PostHog, and only when `NEXT_PUBLIC_POSTHOG_KEY` is set: without a key the route does not exist. The GitHub Pages export has no server, so set it there, for example `https://us.i.posthog.com`; the export's Content-Security-Policy then also allows that host and `https://us-assets.i.posthog.com`, and only then. |
 
 The events are `$pageview` and `error_explained` (the model, duration in ms, whether it succeeded). Never the screenshot, the context text, the report or your key; no cookies. In the PostHog project, enable cookieless mode (otherwise events are dropped) and "Discard client IP data". Details: [ADR 0002](docs/adr/0002-cookieless-analytics.md).
 

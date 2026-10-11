@@ -3,7 +3,9 @@
  *
  * - No key: `track()` is a no-op. next.config.ts pins the unset key to "" at
  *   build time, which makes the dynamic import below dead code, so the build
- *   contains no SDK and nothing is downloaded.
+ *   contains no SDK and nothing is downloaded. The /ingest proxy in
+ *   next.config.ts is registered only with a key as well, so without one
+ *   that route does not exist.
  * - With a key: `lib/posthog.ts`, the only module that imports the SDK, is
  *   loaded on idle by instrumentation-client.ts, off the critical path. Events
  *   tracked before then are queued and flushed once it is ready.

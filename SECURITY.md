@@ -9,3 +9,4 @@ Use GitHub's private vulnerability reporting on this repository (Security tab, R
 - API keys are entered by the user and stored in the browser. They are sent only to the provider the user selects. Any script injection on the origin could read them, so do not paste keys into untrusted deployments.
 - User content (notes, screenshots, prompts) is processed in the browser. The README lists what is sent to a model provider.
 - Model output is validated and rendered as text, never as HTML.
+- The `/ingest` analytics proxy is a server-side rewrite registered only when `NEXT_PUBLIC_POSTHOG_KEY` is set at build time. Without a key the route does not exist, so the deployment cannot be used to relay arbitrary requests to PostHog. The static export has no proxy at all.

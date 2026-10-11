@@ -85,6 +85,7 @@ Status: Verified.
 Status: Implemented, not verified end to end.
 
 - Given a build without `NEXT_PUBLIC_POSTHOG_KEY`, then the build output contains no analytics SDK, no analytics request is made and nothing is written to the console.
+- Given a build without the key (unset or empty), then the `/ingest` proxy is not registered: `rewrites()` returns no rules and a request to `/ingest/*` is a 404, not a forward to PostHog. The Pages export never has rewrites.
 - Given a build with the key, then a `$pageview` is sent on load and on every route change, and one `error_explained` is sent when an analysis request to a model or to the demo completes or fails, with exactly `model`, `latency_ms`, `input_kind` and `ok`; every event also carries `app: "errorlens"` and `surface: "web"`. A missing provider key is not an attempt and sends nothing.
 - Given the key, then the SDK runs cookieless with no person profiles, no autocapture and no session recording, honours Do Not Track, and sends to the site's own `/ingest` path, which a Node host proxies, or to `NEXT_PUBLIC_POSTHOG_HOST` on the Pages export.
 - The screenshot, the context text, the report, error messages and the provider key are never sent.
